@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "sourceMap": true,
+    "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    "module": "esnext",                                /* Specify what module code is generated. */
+    "moduleResolution": "node",
+    "strict": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "jsx": "preserve",
+    "lib": ["esnext", "dom"],
+    "baseUrl": ".",
+    "paths": {
+      "@vue/*": ["packages/*/src"]
+    }
+  }
+}
