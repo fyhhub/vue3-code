@@ -1,6 +1,8 @@
 import { reactive } from "@vue/reactivity";
-import { isString, ShapeFlags } from "@vue/shared";
+import { hasOwn, isString, ShapeFlags } from "@vue/shared";
 import { ReactiveEffect } from "packages/reactivity/src/effect";
+import { createComponentInstance, setupComponent } from "./component";
+import { initProps, updateProps } from "./componentProps";
 import { queueJob } from "./scheduler";
 import { createVNode, Fragment, isSameVNode, Text } from './vnode'
 export function createRenderer(renderOptions) {
@@ -21,7 +23,7 @@ export function createRenderer(renderOptions) {
   } = renderOptions
 
   const normalize = (children, i) => {
-    if (isString(children[i])) {
+    if (isString(children[i]) || typeof children[i] === 'number') {
       const vnode = createVNode(Text, null, children[i])
       children[i] = vnode
     }
@@ -365,30 +367,28 @@ export function createRenderer(renderOptions) {
   }
 
 
+
   const mountComponent = (vnode, container, anchor) => {
-    const {
-      data = () => ({}),
-      render
-    } = vnode.type
 
-    const state = reactive(data())
+    // 创建组件实例
+    const instance = vnode.component = createComponentInstance(vnode)
 
-    const instance = {
-      state,
-      vnode,
-      subTree: null, // 组件渲染的内容
-      isMounted: false,
-      update: null
-    }
+    // 设置组件数据 并代理数据
+    setupComponent(instance)
 
+    setupRenderEffect(instance, container, anchor)
+  }
+
+  const setupRenderEffect = (instance, container, anchor) => {
+    const { render } = instance
     const componentUpdateFn = () => {
       if (!instance.isMounted) {
-        const subTree = render.call(state)
+        const subTree = render.call(instance.proxy)
         patch(null, subTree, container, anchor)
         instance.subTree = subTree
         instance.isMounted = true
       } else {
-        const subTree = render.call(state)
+        const subTree = render.call(instance.proxy)
         patch(instance.subTree, subTree, container, anchor)
       }
     }
@@ -402,12 +402,19 @@ export function createRenderer(renderOptions) {
     update()
   }
 
+  const updateComponent = (n1, n2) => {
+    const instance = n2.component = n1.component
+    const { props: prevProps } = n1
+    const { props: nextProps } = n2
+    updateProps(instance, prevProps, nextProps)
+  }
+
 
   const processComponent = (n1, n2, container, anchor) => {
     if (!n1) {
       mountComponent(n2, container, anchor)
     } else {
-
+      updateComponent(n1, n2)
     }
   }
 

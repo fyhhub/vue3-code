@@ -28,5 +28,8 @@
   var isString = (value) => {
     return typeof value === "string";
   };
+  var hasOwn = (value, key) => {
+    return Object.prototype.hasOwnProperty.call(value, key);
+  };
 })();
 //# sourceMappingURL=shared.global.js.map

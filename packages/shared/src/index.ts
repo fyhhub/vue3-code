@@ -14,4 +14,8 @@ export const isString = (value: unknown): value is string => {
   return typeof value === 'string'
 }
 
+export const hasOwn = (value, key) => {
+  return Object.prototype.hasOwnProperty.call(value, key)
+}
+
 export * from './shapeFlags'
