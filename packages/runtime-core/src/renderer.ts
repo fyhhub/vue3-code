@@ -420,7 +420,6 @@ export function createRenderer(renderOptions) {
 
   const patch = (n1, n2, container, anchor?) => {
     if (n1 === n2) return
-
     // 节点类型不一样
     if (n1 && !isSameVNode(n1, n2)) {
       // 删除旧节点

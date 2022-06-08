@@ -178,7 +178,7 @@ var VueRuntimeDOM = (() => {
     if (rawProps) {
       for (const key in rawProps) {
         const value = rawProps[key];
-        if (hasOwn(value, key)) {
+        if (hasOwn(options, key)) {
           props[key] = value;
         } else {
           attrs[key] = value;
@@ -187,6 +187,31 @@ var VueRuntimeDOM = (() => {
     }
     instance.props = reactive(props);
     instance.attrs = attrs;
+  }
+  var hasPropsChange = (prevProps = {}, nextProps = {}) => {
+    const nextKeys = Object.keys(nextProps);
+    if (nextKeys.length !== Object.keys(prevProps).length) {
+      return true;
+    }
+    for (let i = 0; i < nextKeys.length; i++) {
+      const key = nextKeys[i];
+      if (nextKeys[key] !== prevProps[key]) {
+        return true;
+      }
+    }
+    return false;
+  };
+  function updateProps(instance, prevProps, nextProps) {
+    if (hasPropsChange(prevProps, nextProps)) {
+      for (const key in nextProps) {
+        instance.props[key] = nextProps[key];
+      }
+      for (const key in instance.props) {
+        if (!hasOwn(nextProps, key)) {
+          delete instance.props[key];
+        }
+      }
+    }
   }
 
   // packages/runtime-core/src/component.ts
@@ -322,7 +347,7 @@ var VueRuntimeDOM = (() => {
       insertStaticContent: hostInsertStaticContent
     } = renderOptions2;
     const normalize = (children, i) => {
-      if (isString(children[i])) {
+      if (isString(children[i]) || typeof children[i] === "number") {
         const vnode = createVNode(Text, null, children[i]);
         children[i] = vnode;
       }
@@ -565,10 +590,17 @@ var VueRuntimeDOM = (() => {
       const update = instance.update = effect2.run.bind(effect2);
       update();
     };
+    const updateComponent = (n1, n2) => {
+      const instance = n2.component = n1.component;
+      const { props: prevProps } = n1;
+      const { props: nextProps } = n2;
+      updateProps(instance, prevProps, nextProps);
+    };
     const processComponent = (n1, n2, container, anchor) => {
       if (!n1) {
         mountComponent(n2, container, anchor);
       } else {
+        updateComponent(n1, n2);
       }
     };
     const patch = (n1, n2, container, anchor) => {

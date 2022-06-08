@@ -67,7 +67,7 @@ export function trackEffects(dep) {
     if (shouldTrack) {
       // 属性记录 effect
       dep.add(activeEffect)
-      // effect 反向记录所有属性的dep Set集合，这么做是为了处理分支切换 例如 flag ? this.name : this.age, 切换前 需要把所有属性的dep Set清空
+      // effect 反向记录所有属性的dep Set集合，这么做是为了处理分支切换 例如 flag ? this.name : this.age, 切换前 需要把所有属性的dep Set中的当前effect去除
       activeEffect.deps.push(dep)
     }
   }

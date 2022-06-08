@@ -35,6 +35,4 @@ export function watch(source, cb) {
   const effect = new ReactiveEffect(getter, job)
 
   oldValue = effect.run()
-
-
 }
